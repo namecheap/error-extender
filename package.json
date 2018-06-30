@@ -1,0 +1,74 @@
+{
+  "name": "error-extender",
+  "version": "1.0.0",
+  "description": "error-extender",
+  "main": "main/ErrorExtender.js",
+  "scripts": {
+    "test": "./node_modules/.bin/nyc ./node_modules/.bin/mocha ./**/*Test.spec.js --forbid-only --forbid-pending --reporter=\"mochawesome\" --reporter-options=\"reportDir=./test-results/mocha/,reportFilename=index.html\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpbaking/error-extender.git"
+  },
+  "keywords": [
+    "error",
+    "extends",
+    "extender",
+    "error-extender",
+    "exception",
+    "jpbaking"
+  ],
+  "author": "Joseph Baking <josephbaking.ph@gmail.com> (https://github.com/jpbaking)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jpbaking/error-extender/issues"
+  },
+  "homepage": "https://github.com/jpbaking/error-extender#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "mochawesome": "^3.0.2",
+    "nyc": "^12.0.2"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "lines": 100,
+    "statements": 100,
+    "functions": 100,
+    "branches": 100,
+    "watermarks": {
+      "lines": [
+        85,
+        100
+      ],
+      "functions": [
+        85,
+        100
+      ],
+      "branches": [
+        85,
+        100
+      ],
+      "statements": [
+        85,
+        100
+      ]
+    },
+    "include": [
+      "**/*.js"
+    ],
+    "exclude": [
+      "node_modules",
+      "coverage",
+      "**/*.spec.js"
+    ],
+    "reporter": [
+      "text",
+      "html",
+      "cobertura"
+    ],
+    "cache": false,
+    "all": true,
+    "temp-directory": "./test-results/coverage/.tmp",
+    "report-dir": "./test-results/coverage"
+  }
+}
