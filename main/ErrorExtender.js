@@ -39,6 +39,9 @@ function processParams(target, params) {
 }
 
 function extend(newErrorName, ParentErrorType = Error) {
+  if (!ParentErrorType || !(new ParentErrorType() instanceof Error)) {
+    throw new Error('`ParentErrorType` is not a valid `Error`');
+  }
   function ExtendedError(...params) {
     if (!(this instanceof ExtendedError)) {
       return new ExtendedError(...params);
