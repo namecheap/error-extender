@@ -97,4 +97,19 @@ describe(require('path').basename(__filename), function () {
 
   });
 
+  it('should reject non-Error type "parent"', function () {
+    try {
+      extendError('NewErrorType', null);
+      assert.fail('must throw error!');
+    } catch (error) {
+      assert.strictEqual(error.message, '`ParentErrorType` is not a valid `Error`');
+    }
+    try {
+      extendError('NewErrorType', 'not falsy');
+      assert.fail('must throw error!');
+    } catch (error) {
+      assert.strictEqual(error.message, '`ParentErrorType` is not a valid `Error`');
+    }
+  });
+
 });
