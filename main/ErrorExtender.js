@@ -1,47 +1,41 @@
 'use strict';
 
-function initialProperties(name) {
-  return {
-    name: { value: name, enumerable: false, writable: false, configurable: false },
-    message: { enumerable: false, writable: false, configurable: false },
-    context: { enumerable: false, writable: false, configurable: false },
-    cause: { enumerable: false, writable: false, configurable: false }
-  }
-}
+const Assert = require('./helpers/Assert');
+const validator = require('./helpers/Assert').validator;
 
-function defineReadOnly(target, propertyName, value) {
-  Object.defineProperty(target, propertyName, {
-    value: value, enumerable: false, writable: false, configurable: false
-  });
+const hro = require('./helpers/HiddenReadOnly');
+const hroConfig = require('./helpers/HiddenReadOnlyConfig');
+
+function initialProperties(name) {
+  return { name: hroConfig(name), message: hroConfig(), context: hroConfig(), cause: hroConfig() }
 }
 
 function processParams(target, params) {
-  if (!params || params.length === 0) {
+  if (validator.isEmpty(params)) {
     return;
   }
   if ('string' === typeof params[0]) {
-    defineReadOnly(target, 'message', params.shift());
+    hro(target, 'message', params.shift());
   }
-  if (params.length === 0) {
+  if (validator.isEmpty(params)) {
     return;
-  } else if (params[params.length - 1] instanceof Error) {
+  } else if (validator.isError(params[params.length - 1])) {
     const cause = params.pop();
-    defineReadOnly(target, 'cause', cause);
-    defineReadOnly(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause}`)
+    hro(target, 'cause', cause);
+    hro(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause}`)
   }
-  if (params.length === 0) {
+  if (validator.isEmpty(params)) {
     return;
   } else if (params.length === 1) {
-    defineReadOnly(target, 'context', params[0]);
+    hro(target, 'context', params[0]);
   } else {
-    defineReadOnly(target, 'context', params);
+    hro(target, 'context', params);
   }
 }
 
 function extend(newErrorName, ParentErrorType = Error) {
-  if (!ParentErrorType || !(new ParentErrorType() instanceof Error)) {
-    throw new Error('`ParentErrorType` is not a valid `Error`');
-  }
+  Assert.isNotBlank(newErrorName, '`newErrorName` cannot be blank');
+  Assert.isError(ParentErrorType, '`ParentErrorType` is not a valid `Error`');
   function ExtendedError(...params) {
     if (!(this instanceof ExtendedError)) {
       return new ExtendedError(...params);
@@ -54,8 +48,8 @@ function extend(newErrorName, ParentErrorType = Error) {
     initialProperties(newErrorName));
   ExtendedError.prototype.constructor = ExtendedError;
   const constructorName = `Created by error-extender: "${newErrorName}"`;
-  defineReadOnly(ExtendedError.prototype.constructor, 'name', constructorName);
-  defineReadOnly(ExtendedError.prototype.constructor, 'toString', () => `[${constructorName}]`);
+  hro(ExtendedError.prototype.constructor, 'name', constructorName);
+  hro(ExtendedError.prototype.constructor, 'toString', () => `[${constructorName}]`);
   return ExtendedError;
 }
 
