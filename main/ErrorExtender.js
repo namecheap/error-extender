@@ -1,56 +1,75 @@
 'use strict';
 
 const Assert = require('./helpers/Assert');
-const validator = require('./helpers/Assert').validator;
 
 const hro = require('./helpers/HiddenReadOnly');
-const hroConfig = require('./helpers/HiddenReadOnlyConfig');
 
-function initialProperties(name) {
-  return { name: hroConfig(name), message: hroConfig(), context: hroConfig(), cause: hroConfig() }
+function get(target, key, keyAlias) {
+  return target[key] || target[keyAlias];
 }
 
-function processParams(target, params) {
-  if (validator.isEmpty(params)) {
-    return;
-  }
-  if ('string' === typeof params[0]) {
-    hro(target, 'message', params.shift());
-  }
-  if (validator.isEmpty(params)) {
-    return;
-  } else if (validator.isError(params[params.length - 1])) {
-    const cause = params.pop();
+function getMessage(target) {
+  return target && get(target, 'm', 'message');
+}
+
+function getData(target) {
+  return target && get(target, 'd', 'data');
+}
+
+function captureCause(target, options) {
+  const cause = options && get(options, 'c', 'cause');
+  if (cause) {
+    Assert.isError(cause, '`cause` must be a valid Error (instanceof)');
     hro(target, 'cause', cause);
-    hro(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause}`)
-  }
-  if (validator.isEmpty(params)) {
-    return;
-  } else if (params.length === 1) {
-    hro(target, 'context', params[0]);
-  } else {
-    hro(target, 'context', params);
+    hro(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause.toString()}`);
   }
 }
 
-function extend(newErrorName, ParentErrorType = Error) {
-  Assert.isNotBlank(newErrorName, '`newErrorName` cannot be blank');
-  Assert.isError(ParentErrorType, '`ParentErrorType` is not a valid `Error`');
-  function ExtendedError(...params) {
-    if (!(this instanceof ExtendedError)) {
-      return new ExtendedError(...params);
+function captureProperties(target, options) {
+  hro(target, 'message', getMessage(options) || target.message);
+  hro(target, 'data', getData(options) || target.data);
+  captureCause(target, options);
+}
+
+function createExtendedErrorType(newErrorName, ParentErrorType, defaultMessage, defaultData) {
+
+  function ExtendedErrorType(options = {}) {
+    Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
+    if (!(this instanceof ExtendedErrorType)) {
+      return new ExtendedErrorType(options);
     }
     Error.captureStackTrace(this, this.constructor);
-    processParams(this, params);
+    captureProperties(this, options);
   }
-  ExtendedError.prototype = Object.create(
-    ParentErrorType.prototype,
-    initialProperties(newErrorName));
-  ExtendedError.prototype.constructor = ExtendedError;
+
+  // base
+  ExtendedErrorType.prototype = Object.create(ParentErrorType.prototype);
+  ExtendedErrorType.prototype.constructor = ExtendedErrorType;
+
+  // name
+  ExtendedErrorType.prototype.name = newErrorName;
   const constructorName = `Created by error-extender: "${newErrorName}"`;
-  hro(ExtendedError.prototype.constructor, 'name', constructorName);
-  hro(ExtendedError.prototype.constructor, 'toString', () => `[${constructorName}]`);
-  return ExtendedError;
+  hro(ExtendedErrorType.prototype.constructor, 'name', constructorName);
+  ExtendedErrorType.prototype.constructor.toString = () => `[${constructorName}]`;
+
+  // properties
+  ExtendedErrorType.prototype.message = defaultMessage;
+  ExtendedErrorType.prototype.data = defaultData;
+  ExtendedErrorType.prototype.cause = undefined;
+
+  // return
+  return ExtendedErrorType;
+
+}
+
+function extend(newErrorName, options = { parent: undefined, defaultMessage: undefined, defaultData: undefined }) {
+  Assert.isNotBlank(newErrorName, '`newErrorName` cannot be blank');
+  Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
+  let parent = options.parent || Error;
+  Assert.isError(parent, '`options.parent` is not a valid `Error`');
+  return createExtendedErrorType(
+    newErrorName, parent,
+    options.defaultMessage, options.defaultData);
 }
 
 module.exports = extend;
