@@ -1,115 +1,84 @@
 'use strict';
 
+const path = require('path');
+const testName = path.basename(__filename);
+
 const assert = require('assert');
 
+const hro = require('./helpers/HiddenReadOnly');
 const extendError = require('./ErrorExtender');
 
-describe(require('path').basename(__filename), function () {
+describe(testName, function () {
+
+  it('should obscure type name', function () {
+    const NError = extendError('NError');
+    assert.strictEqual(NError.prototype.toString(), 'NError');
+    assert.strictEqual(NError.prototype.name, 'NError');
+    assert.strictEqual(NError.name, 'Created by error-extender: "NError"');
+    assert.strictEqual(NError.toString(), '[Created by error-extender: "NError"]');
+  });
 
   it('should return new "error" that is instanceof `Error`', function () {
-    const NewErrorType = extendError('NewErrorType');
-    assert.ok(NewErrorType() instanceof Error);
-    assert.ok(new NewErrorType() instanceof Error);
+    const NError = extendError('NError');
+    assert.ok(NError() instanceof Error);
+    assert.ok(new NError() instanceof Error);
   });
 
-  it('should successfully "extend" other errors created by error-extender', function () {
-    const NewErrorType = extendError('NewErrorType');
-    const AnotherNewErrorType = extendError('AnotherNewErrorType', NewErrorType);
-    assert.ok(new AnotherNewErrorType() instanceof Error);
-    assert.ok(new AnotherNewErrorType() instanceof NewErrorType);
+  it('should return extended', function () {
+    const NError = extendError('NError');
+    const SError = extendError('SError', { parent: NError });
+    assert.ok(SError() instanceof NError);
+    assert.ok(new SError() instanceof Error);
   });
 
-  it('should obscure prototype details', function () {
-    const NewErrorType = extendError('NewErrorType');
-    assert.strictEqual(NewErrorType.toString(), '[Created by error-extender: "NewErrorType"]');
-    assert.strictEqual(NewErrorType.prototype.toString(), 'NewErrorType');
-    assert.strictEqual(NewErrorType.prototype.constructor.toString(), '[Created by error-extender: "NewErrorType"]');
+  it('should return with message', function () {
+    const NError = extendError('NError', { defaultMessage: 'default message' });
+    assert.strictEqual(new NError().message, 'default message');
+    assert.strictEqual(NError({ m: 'the message' }).message, 'the message');
   });
 
-  it('should be able to return `cause` (sub-error)', function () {
-    const NewErrorType = extendError('NewErrorType');
-    const theRootCause = new NewErrorType('the root cause');
-    const newErrorType = new NewErrorType('the new error',
-      new NewErrorType('the new sub-error',
-        theRootCause));
-    assert.strictEqual(newErrorType.message, 'the new error');
-    assert.strictEqual(newErrorType.cause.message, 'the new sub-error');
-    assert.strictEqual(newErrorType.cause.cause.message, 'the root cause');
+  it('should return with data (context)', function () {
+    const NError = extendError('NError', {
+      defaultData: { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } }
+    });
+    assert.strictEqual(new NError({ d: 'the data' }).data, 'the data');
+    assert.deepStrictEqual(NError({ m: 'the message' }).data,
+      { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } });
   });
 
-  it('should append cause stack to own stack', function () {
-    const NewErrorType = extendError('NewErrorType');
-    const theRootCause = new Error('the root cause');
-    const newErrorType = new NewErrorType('the new error', theRootCause);
-    assert.ok(newErrorType.stack.startsWith('NewErrorType: the new error'));
-    assert.ok(newErrorType.stack.endsWith(`\nCaused by: ${theRootCause.stack}`));
-    const anotherError = new NewErrorType('another error', newErrorType);
-    assert.ok(newErrorType.stack.startsWith('NewErrorType: the new error'));
-    assert.ok(anotherError.stack.endsWith(`\nCaused by: ${newErrorType.stack}`));
-  });
-
-  it('should return handle "stackless"', function () {
-    const NewErrorType = extendError('NewErrorType');
-    const theRootCause = new NewErrorType('the root cause');
-    Object.defineProperty(theRootCause, 'stack', { value: undefined });
-    const anError = new NewErrorType('the new error', theRootCause);
-    assert.ok(anError.stack.endsWith('\nCaused by: NewErrorType: the root cause'));
-  });
-
-  it('should return `context`', function () {
-
-    const NewErrorType = extendError('NewErrorType');
-
-    let theRootCause = new NewErrorType('the root cause', { referenceId: '1234:4321' }, new Error('lerler'));
-    assert.strictEqual(theRootCause.message, 'the root cause');
-    assert.deepStrictEqual(theRootCause.context, { referenceId: '1234:4321' });
-    assert.strictEqual(theRootCause.cause.message, 'lerler');
-
-    theRootCause = new NewErrorType('the root cause', { referenceId: '1234:4321' });
-    assert.strictEqual(theRootCause.message, 'the root cause');
-    assert.deepStrictEqual(theRootCause.context, { referenceId: '1234:4321' });
-    assert.strictEqual(theRootCause.cause, undefined);
-
-    theRootCause = new NewErrorType('the root cause', 'hello', 'world', new Error('lerler'));
-    assert.strictEqual(theRootCause.message, 'the root cause');
-    assert.deepStrictEqual(theRootCause.context, ['hello', 'world']);
-    assert.strictEqual(theRootCause.cause.message, 'lerler');
-
-    theRootCause = new NewErrorType('the root cause', 'hello', 'world');
-    assert.strictEqual(theRootCause.message, 'the root cause');
-    assert.deepStrictEqual(theRootCause.context, ['hello', 'world']);
-    assert.strictEqual(theRootCause.cause, undefined);
-
-    theRootCause = new NewErrorType('the root cause');
-    assert.strictEqual(theRootCause.message, 'the root cause');
-    assert.deepStrictEqual(theRootCause.context, undefined);
-    assert.strictEqual(theRootCause.cause, undefined);
-
-    theRootCause = new NewErrorType(new Error('lerler'));
-    assert.strictEqual(theRootCause.message, undefined);
-    assert.deepStrictEqual(theRootCause.context, undefined);
-    assert.strictEqual(theRootCause.cause.message, 'lerler');
-
-    theRootCause = new NewErrorType();
-    assert.strictEqual(theRootCause.message, undefined);
-    assert.deepStrictEqual(theRootCause.context, undefined);
-    assert.strictEqual(theRootCause.cause, undefined);
-
-  });
-
-  it('should reject non-Error type "parent"', function () {
-    try {
-      extendError('NewErrorType', null);
-      assert.fail('must throw error!');
-    } catch (error) {
-      assert.strictEqual(error.message, '`ParentErrorType` is not a valid `Error`');
+  it('should return with extended stack (cause)', function () {
+    const NError = extendError('NError');
+    const SError = extendError('SError', { parent: NError });
+    const rootError = new Error('the root error');
+    const firstWrapperError = new SError({ c: rootError, m: 'first wrapper' });
+    const lastWrapperError = new NError({ c: firstWrapperError, m: 'last wrapper' });
+    assert.strictEqual(lastWrapperError.message, 'last wrapper');
+    assert.strictEqual(lastWrapperError.cause.message, 'first wrapper');
+    assert.strictEqual(lastWrapperError.cause.cause.message, 'the root error');
+    {
+      const stacktrace = firstWrapperError.stack.split('Caused by: ');
+      assert.strictEqual(stacktrace.length, 2);
+      assert.strictEqual(stacktrace[0].substring(0, stacktrace[0].indexOf('\n')), 'SError: first wrapper');
+      assert.strictEqual(stacktrace[1].substring(0, stacktrace[1].indexOf('\n')), 'Error: the root error');
     }
-    try {
-      extendError('NewErrorType', 'not falsy');
-      assert.fail('must throw error!');
-    } catch (error) {
-      assert.strictEqual(error.message, '`ParentErrorType` is not a valid `Error`');
+    {
+      const stacktrace = lastWrapperError.stack.split('Caused by: ');
+      assert.strictEqual(stacktrace.length, 3);
+      assert.strictEqual(stacktrace[0].substring(0, stacktrace[0].indexOf('\n')), 'NError: last wrapper');
+      assert.strictEqual(stacktrace[1].substring(0, stacktrace[1].indexOf('\n')), 'SError: first wrapper');
+      assert.strictEqual(stacktrace[2].substring(0, stacktrace[2].indexOf('\n')), 'Error: the root error');
     }
+  });
+
+  it('should capture stackless causes', function () {
+    const NError = extendError('NError');
+    const rootError = new Error('the root error');
+    hro(rootError, 'stack', undefined);
+    const lastWrapperError = new NError({ c: rootError, m: 'last wrapper' });
+    const stacktrace = lastWrapperError.stack.split('Caused by: ');
+    assert.strictEqual(stacktrace.length, 2);
+    assert.strictEqual(stacktrace[0].substring(0, stacktrace[0].indexOf('\n')), 'NError: last wrapper');
+    assert.strictEqual(stacktrace[1], 'Error: the root error');
   });
 
 });
