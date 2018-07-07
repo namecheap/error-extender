@@ -32,7 +32,7 @@ const validator = {
   isError: (o) => !!o && (o instanceof Error || (() => { try { return (new o() instanceof Error); } catch (_) { return false; } })()),
   isEmpty: (o) => validator.isUndefined(o) || validator.isNull(o) || (validator.isString(o) && o.length === 0) || (validator.isArray(o) && o.length === 0) || (validator.isObject(o) && Object.keys(o).length === 0),
   isBlank: (o) => validator.isString(o) && o.trim().length === 0,
-  isNotBlank: (o) => !validator.isBlank(o)
+  isNotBlank: (o) => validator.isString(o) && o.trim().length > 0
 };
 
 function validate(isOk, m, throwError) {
