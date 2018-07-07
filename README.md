@@ -1,6 +1,43 @@
-# error-extender v1.0.0
+# error-extender-1.0.1
 
-Simplifies creation of custom `Error` classes for Node.js.
+Simplifies creation of custom `Error` classes for Node.js!
+
+...which then produces `stack` with appended stacks of supplied `cause` _(very much like in Java)_!
+
+```javascript
+const extendError = require('error-extender');
+
+const CustomError = extendError('CustomError');
+
+const rootCause = new Error('the root cause');
+
+console.log(new CustomError({ message: 'An error has occurred.', cause: rootCause }));
+```
+
+Shall output:
+
+```
+CustomError: An error has occurred.
+    at Object.<anonymous> (/opt/app/index.js:7:13)
+    at Module._compile (internal/modules/cjs/loader.js:702:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:713:10)
+    at Module.load (internal/modules/cjs/loader.js:612:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:551:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:543:3)
+    at Function.Module.runMain (internal/modules/cjs/loader.js:744:10)
+    at startup (internal/bootstrap/node.js:240:19)
+    at bootstrapNodeJSCore (internal/bootstrap/node.js:564:3)
+Caused by: Error: the root cause
+    at Object.<anonymous> (/opt/app/index.js:5:19)
+    at Module._compile (internal/modules/cjs/loader.js:702:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:713:10)
+    at Module.load (internal/modules/cjs/loader.js:612:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:551:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:543:3)
+    at Function.Module.runMain (internal/modules/cjs/loader.js:744:10)
+    at startup (internal/bootstrap/node.js:240:19)
+    at bootstrapNodeJSCore (internal/bootstrap/node.js:564:3)
+```
 
 ## Features
 
@@ -11,7 +48,7 @@ It's quite simple! See below:
 ```javascript
 const extendError = require('error-extender');
 
-const AppError = extendError('ServiceError'); // extends `Error` (default)
+const AppError = extendError('AppError'); // extends `Error` (default)
 ```
 
 Or... A bit more complex using the second argument _(options)_:
@@ -19,7 +56,7 @@ Or... A bit more complex using the second argument _(options)_:
 ```javascript
 const extendError = require('error-extender');
 
-const AppError = extendError('ServiceError', {
+const AppError = extendError('AppError', {
   defaultMessage: 'An unhandled error has occurred.',
   defaultData: { status: 503, message: 'An unhandled error has occurred.' }
 });
