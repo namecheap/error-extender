@@ -24,6 +24,14 @@ describe(testName, function () {
     assert.ok(new NError() instanceof Error);
   });
 
+  it('should return defaults', function () {
+    const NError = extendError('NError', { defaultMessage: 'default message', defaultData: 'default data' });
+    assert.strictEqual(NError.defaultMessage, 'default message');
+    assert.strictEqual(NError.defaultData, 'default data');
+    assert.strictEqual(new NError().message, 'default message');
+    assert.strictEqual(NError().data, 'default data');
+  });
+
   it('should return extended', function () {
     const NError = extendError('NError');
     const SError = extendError('SError', { parent: NError });
@@ -41,9 +49,17 @@ describe(testName, function () {
     const NError = extendError('NError', {
       defaultData: { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } }
     });
+    const SError = extendError('SError', {
+      parent: NError,
+      defaultData: { status: 404, body: { data: { username: 'Username not found.' } } }
+    });
     assert.strictEqual(new NError({ d: 'the data' }).data, 'the data');
     assert.deepStrictEqual(NError({ m: 'the message' }).data,
       { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } });
+    assert.deepStrictEqual(SError().data,
+      { status: 404, body: { status: 'fail', data: { username: 'Username not found.' } } });
+    assert.deepStrictEqual(NError({ d: { status: 404, body: { status: 'error' } } }).data,
+      { status: 404, body: { status: 'error', data: { username: 'Username cannot be left blank.' } } });
   });
 
   it('should return with extended stack (cause)', function () {
