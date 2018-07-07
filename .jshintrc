@@ -1,0 +1,28 @@
+{
+  "curly": true,
+  "eqeqeq": true,
+  "esversion": 6,
+  "freeze": true,
+  "futurehostile": true,
+  "latedef": true,
+  "maxcomplexity": 10,
+  "maxdepth": 3,
+  "maxparams": 5,
+  "noarg": true,
+  "nocomma": true,
+  "nonew": true,
+  "notypeof": true,
+  "strict": true,
+  "undef": true,
+  "unused": true,
+  "varstmt": true,
+  "node": true,
+  "globals": {
+    "describe": true,
+    "it": true,
+    "before": true,
+    "after": true,
+    "beforeEach": true,
+    "afterEach": true
+  }
+}

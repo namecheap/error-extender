@@ -1,62 +1,116 @@
 'use strict';
 
-function initialProperties(name) {
-  return {
-    name: { value: name, enumerable: false, writable: false, configurable: false },
-    message: { enumerable: false, writable: false, configurable: false },
-    context: { enumerable: false, writable: false, configurable: false },
-    cause: { enumerable: false, writable: false, configurable: false }
-  }
+const Assert = require('./helpers/Assert');
+const validator = Assert.validator;
+
+const hro = require('./helpers/HiddenReadOnly');
+const merge = require('./helpers/Merge');
+
+function configurePrototype(ExtendedErrorType, ParentErrorType) {
+  hro(ExtendedErrorType, 'prototype', Object.create(ParentErrorType.prototype));
+  hro(ExtendedErrorType.prototype, 'constructor', ExtendedErrorType);
 }
 
-function defineReadOnly(target, propertyName, value) {
-  Object.defineProperty(target, propertyName, {
-    value: value, enumerable: false, writable: false, configurable: false
-  });
+function configureName(ExtendedErrorType, newErrorName) {
+  hro(ExtendedErrorType.prototype, 'name', newErrorName);
+  const constructorName = `Created by error-extender: "${newErrorName}"`;
+  hro(ExtendedErrorType.prototype.constructor, 'name', constructorName);
+  hro(ExtendedErrorType.prototype.constructor, 'toString', () => `[${constructorName}]`);
 }
 
-function processParams(target, params) {
-  if (!params || params.length === 0) {
-    return;
-  }
-  if ('string' === typeof params[0]) {
-    defineReadOnly(target, 'message', params.shift());
-  }
-  if (params.length === 0) {
-    return;
-  } else if (params[params.length - 1] instanceof Error) {
-    const cause = params.pop();
-    defineReadOnly(target, 'cause', cause);
-    defineReadOnly(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause}`)
-  }
-  if (params.length === 0) {
-    return;
-  } else if (params.length === 1) {
-    defineReadOnly(target, 'context', params[0]);
+function configureDefaultMessage(ExtendedErrorType, ParentErrorType, defaultMessage) {
+  let mergedDefaultMessage;
+  if (validator.isNotBlank(defaultMessage)) {
+    mergedDefaultMessage = defaultMessage;
   } else {
-    defineReadOnly(target, 'context', params);
+    mergedDefaultMessage = ParentErrorType.defaultMessage;
+  }
+  hro(ExtendedErrorType.prototype.constructor, 'defaultMessage', mergedDefaultMessage);
+}
+
+function configureDefaultData(ExtendedErrorType, ParentErrorType, defaultData) {
+  let mergedDefaultData;
+  if (validator.isObject(defaultData) && validator.isObject(ParentErrorType.defaultData)) {
+    mergedDefaultData = merge(ParentErrorType.defaultData, defaultData);
+  } else {
+    mergedDefaultData = defaultData;
+  }
+  hro(ExtendedErrorType.prototype.constructor, 'defaultData', mergedDefaultData);
+}
+
+function configureProperties(ExtendedErrorType) {
+  hro(ExtendedErrorType.prototype, 'message', undefined);
+  hro(ExtendedErrorType.prototype, 'data', undefined);
+  hro(ExtendedErrorType.prototype, 'cause', undefined);
+}
+
+function capture(target, key, keyAlias) {
+  return target[key] || target[keyAlias];
+}
+
+function captureMessage(target, options) {
+  const message = options && capture(options, 'm', 'message');
+  let mergedMessage;
+  if (validator.isNotBlank(message)) {
+    mergedMessage = message;
+  } else {
+    mergedMessage = target.constructor.defaultMessage;
+  }
+  hro(target, 'message', mergedMessage);
+}
+
+function captureData(target, options) {
+  const data = (options && capture(options, 'd', 'data'));
+  let mergedData;
+  if (validator.isObject(data) && validator.isObject(target.constructor.defaultData)) {
+    mergedData = merge(target.constructor.defaultData, data);
+  } else if (!validator.isUndefined(data)) {
+    mergedData = data;
+  } else {
+    mergedData = target.constructor.defaultData;
+  }
+  hro(target, 'data', mergedData);
+}
+
+function captureCause(target, options) {
+  const cause = options && capture(options, 'c', 'cause');
+  if (cause) {
+    Assert.isError(cause, '`cause` must be a valid `Error` (instanceof)');
+    hro(target, 'cause', cause);
+    hro(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause.toString()}`);
   }
 }
 
-function extend(newErrorName, ParentErrorType = Error) {
-  if (!ParentErrorType || !(new ParentErrorType() instanceof Error)) {
-    throw new Error('`ParentErrorType` is not a valid `Error`');
-  }
-  function ExtendedError(...params) {
-    if (!(this instanceof ExtendedError)) {
-      return new ExtendedError(...params);
+function captureProperties(target, options) {
+  captureMessage(target, options);
+  captureData(target, options);
+  captureCause(target, options);
+}
+
+function createExtendedErrorType(newErrorName, ParentErrorType, defaultMessage, defaultData) {
+  function ExtendedErrorType(options = {}) {
+    Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
+    if (!(this instanceof ExtendedErrorType)) {
+      return new ExtendedErrorType(options);
     }
     Error.captureStackTrace(this, this.constructor);
-    processParams(this, params);
+    captureProperties(this, options);
   }
-  ExtendedError.prototype = Object.create(
-    ParentErrorType.prototype,
-    initialProperties(newErrorName));
-  ExtendedError.prototype.constructor = ExtendedError;
-  const constructorName = `Created by error-extender: "${newErrorName}"`;
-  defineReadOnly(ExtendedError.prototype.constructor, 'name', constructorName);
-  defineReadOnly(ExtendedError.prototype.constructor, 'toString', () => `[${constructorName}]`);
-  return ExtendedError;
+  configurePrototype(ExtendedErrorType, ParentErrorType);
+  configureName(ExtendedErrorType, newErrorName);
+  configureDefaultMessage(ExtendedErrorType, ParentErrorType, defaultMessage);
+  configureDefaultData(ExtendedErrorType, ParentErrorType, defaultData);
+  configureProperties(ExtendedErrorType);
+  return ExtendedErrorType;
+}
+
+function extend(newErrorName, options = { parent: undefined, defaultMessage: undefined, defaultData: undefined }) {
+  Assert.isNotBlank(newErrorName, '`newErrorName` cannot be blank');
+  Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
+  let parent = options.parent || Error;
+  Assert.isError(parent, '`options.parent` is not a valid `Error`');
+  return createExtendedErrorType(newErrorName, parent,
+    options.defaultMessage, options.defaultData);
 }
 
 module.exports = extend;
