@@ -22,24 +22,39 @@ function error(message) {
 }
 
 const validator = {
+  isTruthy: (o) => !!o,
+  isFalsy: (o) => !(!!o),
   isUndefined: (o) => o === undefined,
   isNull: (o) => o === null,
   isObject: (o) => !!o && o.constructor === Object,
   isArray: (o) => !!o && Array.isArray(o),
   isString: (o) => 'string' === typeof o,
-  isError: (o) => !!o && (o instanceof Error || (() => { try { return (new o() instanceof Error) } catch (_) { return false } })()),
+  isError: (o) => !!o && (o instanceof Error || (() => { try { return (new o() instanceof Error); } catch (_) { return false; } })()),
   isEmpty: (o) => validator.isUndefined(o) || validator.isNull(o) || (validator.isString(o) && o.length === 0) || (validator.isArray(o) && o.length === 0) || (validator.isObject(o) && Object.keys(o).length === 0),
   isBlank: (o) => validator.isString(o) && o.trim().length === 0,
   isNotBlank: (o) => !validator.isBlank(o)
-}
+};
 
 function validate(isOk, m, throwError) {
-  if (!isOk)
-    if (throwError)
+  if (!isOk) {
+    if (throwError) {
       throw error(m);
-    else
-      return false
-  return true
+    }
+    else {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isTruthy(o, message, throwError = true) {
+  return validate(validator.isTruthy(o),
+    message || 'should be truthy', throwError);
+}
+
+function isFalsy(o, message, throwError = true) {
+  return validate(validator.isFalsy(o),
+    message || 'should be falsy', throwError);
 }
 
 function isObject(o, message, throwError = true) {
@@ -80,6 +95,8 @@ function isNotBlank(o, message, throwError = true) {
 module.exports = {
   IllegalArgumentError,
   validator,
+  isTruthy,
+  isFalsy,
   isObject,
   isArray,
   isString,
@@ -87,4 +104,4 @@ module.exports = {
   isEmpty,
   isBlank,
   isNotBlank
-}
+};

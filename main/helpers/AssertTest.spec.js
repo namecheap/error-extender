@@ -13,6 +13,94 @@ describe(require('path').basename(__filename), function () {
     assert.strictEqual(IllegalArgumentError.prototype.toString(), 'IllegalArgumentError');
   });
 
+  it('should validate if truthy', function () {
+    assert.ok(validator.isTruthy({}));
+    assert.ok(validator.isTruthy(new Object({})));
+    assert.ok(validator.isTruthy([]));
+    assert.ok(validator.isTruthy(new Object([])));
+    assert.ok(validator.isTruthy(new Date()));
+    assert.ok(validator.isTruthy(new Error()));
+    assert.ok(!validator.isTruthy(null));
+    assert.ok(!validator.isTruthy(undefined));
+    assert.ok(!validator.isTruthy(0));
+    assert.ok(validator.isTruthy(1));
+    assert.ok(validator.isTruthy(1.1));
+    assert.ok(!validator.isTruthy(''));
+    assert.ok(validator.isTruthy('string'));
+    //
+    assert.ok(Assert.isTruthy({}, undefined, false));
+    assert.ok(Assert.isTruthy(new Object({}), undefined, false));
+    assert.ok(Assert.isTruthy([], undefined, false));
+    assert.ok(Assert.isTruthy(new Object([]), undefined, false));
+    assert.ok(Assert.isTruthy(new Date(), undefined, false));
+    assert.ok(Assert.isTruthy(new Error(), undefined, false));
+    assert.ok(!Assert.isTruthy(null, undefined, false));
+    assert.ok(!Assert.isTruthy(undefined, undefined, false));
+    assert.ok(!Assert.isTruthy(0, undefined, false));
+    assert.ok(Assert.isTruthy(1, undefined, false));
+    assert.ok(Assert.isTruthy(1.1, undefined, false));
+    assert.ok(!Assert.isTruthy('', undefined, false));
+    assert.ok(Assert.isTruthy('string', undefined, false));
+    //
+    assert.doesNotThrow(() => Assert.isTruthy({}));
+    assert.doesNotThrow(() => Assert.isTruthy(new Object({})));
+    assert.doesNotThrow(() => Assert.isTruthy([]));
+    assert.doesNotThrow(() => Assert.isTruthy(new Object([])));
+    assert.doesNotThrow(() => Assert.isTruthy(new Date()));
+    assert.doesNotThrow(() => Assert.isTruthy(new Error()));
+    assert.throws(() => Assert.isTruthy(null), IllegalArgumentError);
+    assert.throws(() => Assert.isTruthy(undefined), IllegalArgumentError);
+    assert.throws(() => Assert.isTruthy(0), IllegalArgumentError);
+    assert.doesNotThrow(() => Assert.isTruthy(1));
+    assert.doesNotThrow(() => Assert.isTruthy(1.1));
+    assert.throws(() => Assert.isTruthy(''), IllegalArgumentError);
+    assert.doesNotThrow(() => Assert.isTruthy('string'));
+  });
+
+  it('should validate if falsy', function () {
+    assert.ok(!validator.isFalsy({}));
+    assert.ok(!validator.isFalsy(new Object({})));
+    assert.ok(!validator.isFalsy([]));
+    assert.ok(!validator.isFalsy(new Object([])));
+    assert.ok(!validator.isFalsy(new Date()));
+    assert.ok(!validator.isFalsy(new Error()));
+    assert.ok(validator.isFalsy(null));
+    assert.ok(validator.isFalsy(undefined));
+    assert.ok(validator.isFalsy(0));
+    assert.ok(!validator.isFalsy(1));
+    assert.ok(!validator.isFalsy(1.1));
+    assert.ok(validator.isFalsy(''));
+    assert.ok(!validator.isFalsy('string'));
+    //
+    assert.ok(!Assert.isFalsy({}, undefined, false));
+    assert.ok(!Assert.isFalsy(new Object({}), undefined, false));
+    assert.ok(!Assert.isFalsy([], undefined, false));
+    assert.ok(!Assert.isFalsy(new Object([]), undefined, false));
+    assert.ok(!Assert.isFalsy(new Date(), undefined, false));
+    assert.ok(!Assert.isFalsy(new Error(), undefined, false));
+    assert.ok(Assert.isFalsy(null, undefined, false));
+    assert.ok(Assert.isFalsy(undefined, undefined, false));
+    assert.ok(Assert.isFalsy(0, undefined, false));
+    assert.ok(!Assert.isFalsy(1, undefined, false));
+    assert.ok(!Assert.isFalsy(1.1, undefined, false));
+    assert.ok(Assert.isFalsy('', undefined, false));
+    assert.ok(!Assert.isFalsy('string', undefined, false));
+    //
+    assert.throws(() => Assert.isFalsy({}), IllegalArgumentError);
+    assert.throws(() => Assert.isFalsy(new Object({})), IllegalArgumentError);
+    assert.throws(() => Assert.isFalsy([]), IllegalArgumentError);
+    assert.throws(() => Assert.isFalsy(new Object([])), IllegalArgumentError);
+    assert.throws(() => Assert.isFalsy(new Date()), IllegalArgumentError);
+    assert.throws(() => Assert.isFalsy(new Error()), IllegalArgumentError);
+    assert.doesNotThrow(() => Assert.isFalsy(null));
+    assert.doesNotThrow(() => Assert.isFalsy(undefined));
+    assert.doesNotThrow(() => Assert.isFalsy(0));
+    assert.throws(() => Assert.isFalsy(1), IllegalArgumentError);
+    assert.throws(() => Assert.isFalsy(1.1), IllegalArgumentError);
+    assert.doesNotThrow(() => Assert.isFalsy(''));
+    assert.throws(() => Assert.isFalsy('string'), IllegalArgumentError);
+  });
+
   it('should validate if object literal', function () {
     assert.ok(validator.isObject({}));
     assert.ok(validator.isObject(new Object({})));
