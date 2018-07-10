@@ -1,4 +1,4 @@
-# error-extender-1.0.1
+# error-extender-1.0.2
 
 Simplifies creation of custom `Error` classes for Node.js!
 
@@ -38,6 +38,9 @@ Caused by: Error: the root cause
     at startup (internal/bootstrap/node.js:240:19)
     at bootstrapNodeJSCore (internal/bootstrap/node.js:564:3)
 ```
+
+### 100% Code Coverage
+Oh, by the way, 100% test coverage. See for yourself (via `npm test`)!
 
 ## Features
 
