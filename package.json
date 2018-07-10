@@ -1,6 +1,6 @@
 {
   "name": "error-extender",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "error-extender",
   "main": "main/ErrorExtender.js",
   "scripts": {
