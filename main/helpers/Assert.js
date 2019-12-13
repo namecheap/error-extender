@@ -6,7 +6,12 @@ function IllegalArgumentError(message) {
   if (!(this instanceof IllegalArgumentError)) {
     return new IllegalArgumentError(message);
   }
-  Error.captureStackTrace(this, this.constructor);
+
+  // Maintains proper stack trace for where our error was thrown (only available on V8)
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, this.constructor);
+  }
+
   hro(this, 'message', message);
   const stackArr = this.stack.split('\n');
   hro(this, 'stack', `${stackArr[0]}\n${stackArr[5]}`);
