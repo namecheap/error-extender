@@ -394,4 +394,13 @@ describe(require('path').basename(__filename), function () {
     assert.doesNotThrow(() => Assert.isNotBlank('string'));
   });
 
+  it('should work w/o Error.captureStackTrace support', function () {
+    const buf = Error.captureStackTrace;
+    Error.captureStackTrace = undefined;
+
+    assert.throws(() => Assert.isBlank({}), IllegalArgumentError);
+
+    Error.captureStackTrace = buf;
+  });
+
 });
