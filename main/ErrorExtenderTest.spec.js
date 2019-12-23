@@ -97,15 +97,4 @@ describe(testName, function () {
     assert.strictEqual(stacktrace[1], 'Error: the root error');
   });
 
-  it('should work w/o Error.captureStackTrace support', function () {
-    const buf = Error.captureStackTrace;
-    Error.captureStackTrace = undefined;
-
-    const NError = extendError('NError');
-    assert.ok(NError() instanceof Error);
-    assert.ok(new NError() instanceof Error);
-
-    Error.captureStackTrace = buf;
-  });
-
 });

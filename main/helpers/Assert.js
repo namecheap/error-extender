@@ -8,6 +8,7 @@ function IllegalArgumentError(message) {
   }
 
   // Maintains proper stack trace for where our error was thrown (only available on V8)
+  /* istanbul ignore else */
   if (Error.captureStackTrace) {
     Error.captureStackTrace(this, this.constructor);
   }
