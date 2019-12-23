@@ -1,6 +1,6 @@
-# error-extender-1.0.2
+# @namecheap/error-extender
 
-Simplifies creation of custom `Error` classes for Node.js!
+Simplifies creation of custom `Error` classes for Node.js and Browser!
 
 ...which then produces `stack` with appended stacks of supplied `cause` _(very much like in Java)_!
 
