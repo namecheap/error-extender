@@ -4,7 +4,7 @@
   "description": "error-extender",
   "main": "main/ErrorExtender.js",
   "scripts": {
-    "test": "./node_modules/.bin/nyc ./node_modules/.bin/mocha ./**/*Test.spec.js --forbid-only --forbid-pending --reporter=\"mochawesome\" --reporter-options=\"reportDir=./test-results/mocha/,reportFilename=index.html\""
+    "test": "nyc mocha '**/*.spec.js' --forbid-only --forbid-pending --reporter=\"mochawesome\" --reporter-options=\"reportDir=./test-results/mocha/,reportFilename=index.html\""
   },
   "repository": {
     "type": "git",
