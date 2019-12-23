@@ -1,5 +1,8 @@
 # @namecheap/error-extender
 
+![npm](https://img.shields.io/npm/v/@namecheap/error-extender?label=%40namecheap%2Ferror-extender)
+[![Actions Status](https://github.com/namecheap/error-extender/workflows/CI/badge.svg)](https://github.com/namecheap/error-extender/actions)
+
 Simplifies creation of custom `Error` classes for Node.js and Browser!
 
 ...which then produces `stack` with appended stacks of supplied `cause` _(very much like in Java)_!
