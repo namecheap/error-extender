@@ -1,5 +1,5 @@
 {
-  "name": "error-extender",
+  "name": "@namecheap/error-extender",
   "version": "1.0.2",
   "description": "error-extender",
   "main": "main/ErrorExtender.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jpbaking/error-extender.git"
+    "url": "git+https://github.com/namecheap/error-extender.git"
   },
   "keywords": [
     "error",
@@ -18,12 +18,11 @@
     "exception",
     "jpbaking"
   ],
-  "author": "Joseph Baking <josephbaking.ph@gmail.com> (https://github.com/jpbaking)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/jpbaking/error-extender/issues"
+    "url": "https://github.com/namecheap/error-extender/issues"
   },
-  "homepage": "https://github.com/jpbaking/error-extender#readme",
+  "homepage": "https://github.com/namecheap/error-extender#readme",
   "devDependencies": {
     "jshint": "^2.9.5",
     "mocha": "^5.2.0",
