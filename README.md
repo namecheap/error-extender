@@ -8,7 +8,7 @@ Simplifies creation of custom `Error` classes for Node.js and Browser!
 ...which then produces `stack` with appended stacks of supplied `cause` _(very much like in Java)_!
 
 ```javascript
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 
 const CustomError = extendError('CustomError');
 
@@ -52,7 +52,7 @@ Oh, by the way, 100% test coverage. See for yourself (via `npm test`)!
 It's quite simple! See below:
 
 ```javascript
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 
 const AppError = extendError('AppError'); // extends `Error` (default)
 ```
@@ -60,7 +60,7 @@ const AppError = extendError('AppError'); // extends `Error` (default)
 Or... A bit more complex using the second argument _(options)_:
 
 ```javascript
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 
 const AppError = extendError('AppError', {
   defaultMessage: 'An unhandled error has occurred.',
@@ -117,7 +117,7 @@ Yes, much like JavaScript's native `Error`, "Extended Errors" can be written/use
 "Extended Errors" accepts a single [object literal](https://www.w3schools.com/js/js_objects.asp) as argument:
 
 ```javascript
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 const ServiceError = extendError('ServiceError');
 try {
   // ... something throws something
@@ -141,7 +141,7 @@ The options (object literal keys) are as follows:
 Given the alias, you may construct extended errors by:
 
 ```javascript
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 const ServiceError = extendError('ServiceError');
 try {
   // ... something throws something
@@ -176,7 +176,7 @@ Yes, you heard right, instance `data` merges with `defaultData`!!!
 See example below:
 
 ```javascript
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 
 const AppError = extendError('ServiceError', {
   defaultData: { status: 503, message: 'An unhandled error has occurred.' }
@@ -197,7 +197,7 @@ require('assert').deepStrictEqual(
 ```javascript
 const Promise = require('bluebird');
 // ...
-const extendError = require('error-extender');
+const extendError = require('@namecheap/error-extender');
 // ...
 const ServiceError = extendError('ServiceError');
 const ServiceStateError = extendError(
