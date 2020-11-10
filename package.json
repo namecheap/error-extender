@@ -24,10 +24,10 @@
   },
   "homepage": "https://github.com/namecheap/error-extender#readme",
   "devDependencies": {
-    "jshint": "^2.10.3",
+    "jshint": "^2.12.0",
     "mocha": "^5.2.0",
     "mochawesome": "^4.1.0",
-    "nyc": "^15.0.0"
+    "nyc": "^15.1.0"
   },
   "nyc": {
     "check-coverage": true,
