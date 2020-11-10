@@ -7,6 +7,13 @@
   "scripts": {
     "test": "nyc mocha '**/*.spec.js' --forbid-only --forbid-pending --reporter=\"mochawesome\" --reporter-options=\"reportDir=./test-results/mocha/,reportFilename=index.html\""
   },
+  "files": [
+    "main",
+    "index.d.ts",
+    "LICENSE.txt",
+    "NOTICE.md",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/namecheap/error-extender.git"
