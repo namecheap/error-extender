@@ -1,25 +1,30 @@
 name: CI
 
-on: [push]
+on:
+    push:
+        branches:
+            - master
+        tags-ignore:
+            - '**'
+    pull_request:
+        branches:
+            - '**'
 
 jobs:
-  build:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [16.x, 18.x, 20.x]
 
-    strategy:
-      matrix:
-        node-version: [10.x, 12.x]
-
-    steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: npm install, build, and test
-        run: |
-          npm install --no-progress
-          npm test
-        env:
-          CI: true
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'npm'
+            - run: npm ci
+            - run: npm test
