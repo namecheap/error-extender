@@ -60,7 +60,7 @@ function captureMessage(target, options) {
 }
 
 function captureData(target, options) {
-  const data = (options && capture(options, 'd', 'data'));
+  const data = options && capture(options, 'd', 'data');
   let mergedData;
   if (validator.isObject(data) && validator.isObject(target.constructor.defaultData)) {
     mergedData = merge(target.constructor.defaultData, data);
@@ -77,7 +77,11 @@ function captureCause(target, options) {
   if (cause) {
     Assert.isError(cause, '`cause` must be a valid `Error` (instanceof)');
     hro(target, 'cause', cause);
-    hro(target, 'stack', `${target.stack}\nCaused by: ${cause.stack || cause.toString()}`);
+    const causeStack =
+      cause instanceof AggregateError
+        ? `${cause.stack}\n  ${cause.errors.map((e) => e.stack || e.toString()).join('\n  ')}`
+        : cause.stack || cause.toString();
+    hro(target, 'stack', `${target.stack}\nCaused by: ${causeStack}`);
   }
 }
 
@@ -115,8 +119,7 @@ function extend(newErrorName, options = { parent: undefined, defaultMessage: und
   Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
   let parent = options.parent || Error;
   Assert.isError(parent, '`options.parent` is not a valid `Error`');
-  return createExtendedErrorType(newErrorName, parent,
-    options.defaultMessage, options.defaultData);
+  return createExtendedErrorType(newErrorName, parent, options.defaultMessage, options.defaultData);
 }
 
 module.exports = extend;
