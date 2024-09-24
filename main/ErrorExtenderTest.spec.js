@@ -9,7 +9,6 @@ const hro = require('./helpers/HiddenReadOnly');
 const extendError = require('./ErrorExtender');
 
 describe(testName, function () {
-
   it('should obscure type name', function () {
     const NError = extendError('NError');
     assert.strictEqual(NError.prototype.toString(), 'NError');
@@ -47,19 +46,25 @@ describe(testName, function () {
 
   it('should return with data (context)', function () {
     const NError = extendError('NError', {
-      defaultData: { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } }
+      defaultData: { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } },
     });
     const SError = extendError('SError', {
       parent: NError,
-      defaultData: { status: 404, body: { data: { username: 'Username not found.' } } }
+      defaultData: { status: 404, body: { data: { username: 'Username not found.' } } },
     });
     assert.strictEqual(new NError({ d: 'the data' }).data, 'the data');
-    assert.deepStrictEqual(NError({ m: 'the message' }).data,
-      { status: 400, body: { status: 'fail', data: { username: 'Username cannot be left blank.' } } });
-    assert.deepStrictEqual(SError().data,
-      { status: 404, body: { status: 'fail', data: { username: 'Username not found.' } } });
-    assert.deepStrictEqual(NError({ d: { status: 404, body: { status: 'error' } } }).data,
-      { status: 404, body: { status: 'error', data: { username: 'Username cannot be left blank.' } } });
+    assert.deepStrictEqual(NError({ m: 'the message' }).data, {
+      status: 400,
+      body: { status: 'fail', data: { username: 'Username cannot be left blank.' } },
+    });
+    assert.deepStrictEqual(SError().data, {
+      status: 404,
+      body: { status: 'fail', data: { username: 'Username not found.' } },
+    });
+    assert.deepStrictEqual(NError({ d: { status: 404, body: { status: 'error' } } }).data, {
+      status: 404,
+      body: { status: 'error', data: { username: 'Username cannot be left blank.' } },
+    });
   });
 
   it('should return with extended stack (cause)', function () {
@@ -97,4 +102,28 @@ describe(testName, function () {
     assert.strictEqual(stacktrace[1], 'Error: the root error');
   });
 
+  it('should capture AggregateError causes', function () {
+    const cause = new AggregateError([new Error('E1'), new Error('E2')], 'msg');
+    const NError = extendError('NError');
+    const lastWrapperError = new NError({ cause, m: 'last wrapper' });
+    const stacktrace = lastWrapperError.stack.split('Caused by: ');
+    assert.strictEqual(stacktrace.length, 2);
+    assert.strictEqual(stacktrace[0].substring(0, stacktrace[0].indexOf('\n')), 'NError: last wrapper');
+    assert.strictEqual(stacktrace[1].substring(0, stacktrace[1].indexOf('\n')), 'AggregateError: msg');
+    assert.match(stacktrace[1], /^  Error: E1\n/m);
+    assert.match(stacktrace[1], /^  Error: E2\n/m);
+  });
+
+  it('should capture AggregateError causes (no stacktrace)', function () {
+    const rootError = new Error('the root error');
+    hro(rootError, 'stack', undefined);
+    const cause = new AggregateError([rootError], 'msg');
+    const NError = extendError('NError');
+    const lastWrapperError = new NError({ cause, m: 'last wrapper' });
+    const stacktrace = lastWrapperError.stack.split('Caused by: ');
+    assert.strictEqual(stacktrace.length, 2);
+    assert.strictEqual(stacktrace[0].substring(0, stacktrace[0].indexOf('\n')), 'NError: last wrapper');
+    assert.strictEqual(stacktrace[1].substring(0, stacktrace[1].indexOf('\n')), 'AggregateError: msg');
+    assert.match(stacktrace[1], /^  Error: the root error/m);
+  });
 });
