@@ -1,6 +1,6 @@
 {
   "name": "@namecheap/error-extender",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "error-extender",
   "main": "main/ErrorExtender.js",
   "types": "index.d.ts",
