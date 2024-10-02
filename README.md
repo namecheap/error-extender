@@ -105,7 +105,7 @@ The options (object literal keys) are as follows:
 
 1) Creates prototype-based `Error` classes (child/subclass) : _"Extended Errors"_.
 1) Those _"Extended Errors"_, accepts `cause` (`Error`); very much like how it is with Java `Exception`.
-1) Appends stack of `cause` to the bottom of instantiated _"Extended Errors"_ stack.
+1) Appends stack of `cause` to the bottom (or top) of instantiated _"Extended Errors"_ stack.
 1) _"Extended Errors"_ constructor & argument _(w/ optional `new`)_:
     1) `new ExtendedError(options)`
     1) `ExtendedError(options)`
