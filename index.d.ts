@@ -18,6 +18,7 @@ declare module '@namecheap/error-extender' {
         defaultMessage?: string;
         defaultData?: DataType;
         parent?: Error;
+        inverse?: boolean;
     }
 
     export default function <DataType = any>(errType: string, config?: ExtendConfig<DataType>): ExtendedError<DataType>;
