@@ -126,4 +126,28 @@ describe(testName, function () {
     assert.strictEqual(stacktrace[1].substring(0, stacktrace[1].indexOf('\n')), 'AggregateError: msg');
     assert.match(stacktrace[1], /^  Error: the root error/m);
   });
+
+  it('should inverse cause stacktraces', function () {
+    const NError = extendError('NError', { inverse: true });
+    const SError = extendError('SError', { parent: NError, inverse: true });
+    const rootError = new Error('the root error');
+    const firstWrapperError = new SError({ c: rootError, m: 'first wrapper' });
+    const lastWrapperError = new NError({ c: firstWrapperError, m: 'last wrapper' });
+    assert.strictEqual(lastWrapperError.message, 'last wrapper');
+    assert.strictEqual(lastWrapperError.cause.message, 'first wrapper');
+    assert.strictEqual(lastWrapperError.cause.cause.message, 'the root error');
+    {
+      const stacktrace = firstWrapperError.stack.match(/^.*Error:.*$/gm);
+      assert.strictEqual(stacktrace.length, 2);
+      assert.strictEqual(stacktrace[0], 'Caused by: Error: the root error');
+      assert.strictEqual(stacktrace[1], 'SError: first wrapper');
+    }
+    {
+      const stacktrace = lastWrapperError.stack.match(/^.*Error:.*$/gm);
+      assert.strictEqual(stacktrace.length, 3);
+      assert.strictEqual(stacktrace[0], 'Caused by: Error: the root error');
+      assert.strictEqual(stacktrace[1], 'Caused by: SError: first wrapper');
+      assert.strictEqual(stacktrace[2], 'NError: last wrapper');
+    }
+  });
 });

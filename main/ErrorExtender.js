@@ -6,6 +6,8 @@ const validator = Assert.validator;
 const hro = require('./helpers/HiddenReadOnly');
 const merge = require('./helpers/Merge');
 
+const CAUSED_BY_PREFIX = 'Caused by:';
+
 function configurePrototype(ExtendedErrorType, ParentErrorType) {
   hro(ExtendedErrorType, 'prototype', Object.create(ParentErrorType.prototype));
   hro(ExtendedErrorType.prototype, 'constructor', ExtendedErrorType);
@@ -81,8 +83,15 @@ function captureCause(target, options) {
       cause instanceof AggregateError
         ? `${cause.stack}\n  ${cause.errors.map((e) => e.stack || e.toString()).join('\n  ')}`
         : cause.stack || cause.toString();
-    hro(target, 'stack', `${target.stack}\nCaused by: ${causeStack}`);
+    const concatenatedStackTrace = options.inverse
+      ? `${insert(causeStack)}\n${target.stack}`
+      : `${target.stack}\n${CAUSED_BY_PREFIX} ${causeStack}`;
+    hro(target, 'stack', concatenatedStackTrace);
   }
+}
+
+function insert(stack) {
+  return stack.replace(new RegExp(`^((?!  |${CAUSED_BY_PREFIX}).+)$`, 'gm'), `${CAUSED_BY_PREFIX} $1`);
 }
 
 function captureProperties(target, options) {
@@ -91,7 +100,7 @@ function captureProperties(target, options) {
   captureCause(target, options);
 }
 
-function createExtendedErrorType(newErrorName, ParentErrorType, defaultMessage, defaultData) {
+function createExtendedErrorType(newErrorName, ParentErrorType, defaultMessage, defaultData, inverse) {
   function ExtendedErrorType(options = {}) {
     Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
     if (!(this instanceof ExtendedErrorType)) {
@@ -104,7 +113,7 @@ function createExtendedErrorType(newErrorName, ParentErrorType, defaultMessage, 
       Error.captureStackTrace(this, this.constructor);
     }
 
-    captureProperties(this, options);
+    captureProperties(this, { ...options, inverse });
   }
   configurePrototype(ExtendedErrorType, ParentErrorType);
   configureName(ExtendedErrorType, newErrorName);
@@ -114,12 +123,15 @@ function createExtendedErrorType(newErrorName, ParentErrorType, defaultMessage, 
   return ExtendedErrorType;
 }
 
-function extend(newErrorName, options = { parent: undefined, defaultMessage: undefined, defaultData: undefined }) {
+function extend(
+  newErrorName,
+  options = { parent: undefined, defaultMessage: undefined, defaultData: undefined, inverse: false }
+) {
   Assert.isNotBlank(newErrorName, '`newErrorName` cannot be blank');
   Assert.isObject(options, '`options` must be an object literal (ie: `{}`)');
   let parent = options.parent || Error;
   Assert.isError(parent, '`options.parent` is not a valid `Error`');
-  return createExtendedErrorType(newErrorName, parent, options.defaultMessage, options.defaultData);
+  return createExtendedErrorType(newErrorName, parent, options.defaultMessage, options.defaultData, options.inverse);
 }
 
 module.exports = extend;
