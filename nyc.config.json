@@ -1,0 +1,20 @@
+module.exports = {
+  'check-coverage': true,
+  lines: 100,
+  statements: 100,
+  functions: 100,
+  branches: 100,
+  watermarks: {
+    lines: [85, 100],
+    functions: [85, 100],
+    branches: [85, 100],
+    statements: [85, 100],
+  },
+  include: ['**/*.js'],
+  exclude: ['node_modules', 'test-results', '**/*.spec.js', 'nyc.config.js'],
+  reporter: ['text', 'html', 'cobertura'],
+  cache: false,
+  all: true,
+  'temp-directory': './test-results/coverage/.tmp',
+  'report-dir': './test-results/coverage',
+};
