@@ -1,11 +1,12 @@
 {
   "name": "@namecheap/error-extender",
-  "version": "2.2.1",
+  "version": "0.0.0",
   "description": "error-extender",
   "main": "main/ErrorExtender.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "nyc mocha '**/*.spec.js' --forbid-only --forbid-pending --reporter=\"mochawesome\" --reporter-options=\"reportDir=./test-results/mocha/,reportFilename=index.html\""
+    "test": "nyc mocha './{,!(node_modules)/**}/*.spec.js' --forbid-only --forbid-pending --reporter=\"mochawesome\" --reporter-options=\"reportDir=./test-results/mocha/,reportFilename=index.html\"",
+    "prepare": "husky"
   },
   "files": [
     "main",
@@ -32,51 +33,16 @@
   },
   "homepage": "https://github.com/namecheap/error-extender#readme",
   "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "husky": "^9.1.6",
     "jshint": "^2.13.6",
-    "mocha": "^10.2.0",
+    "mocha": "^10.7.3",
     "mochawesome": "^7.1.3",
-    "nyc": "^15.1.0"
+    "nyc": "^17.1.0",
+    "semantic-release": "^24.1.3"
   },
-  "nyc": {
-    "check-coverage": true,
-    "lines": 100,
-    "statements": 100,
-    "functions": 100,
-    "branches": 100,
-    "watermarks": {
-      "lines": [
-        85,
-        100
-      ],
-      "functions": [
-        85,
-        100
-      ],
-      "branches": [
-        85,
-        100
-      ],
-      "statements": [
-        85,
-        100
-      ]
-    },
-    "include": [
-      "**/*.js"
-    ],
-    "exclude": [
-      "node_modules",
-      "test-results",
-      "**/*.spec.js"
-    ],
-    "reporter": [
-      "text",
-      "html",
-      "cobertura"
-    ],
-    "cache": false,
-    "all": true,
-    "temp-directory": "./test-results/coverage/.tmp",
-    "report-dir": "./test-results/coverage"
+  "overrides": {
+    "conventional-changelog-conventionalcommits": ">= 8.0.0"
   }
 }
