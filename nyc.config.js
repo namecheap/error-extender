@@ -11,7 +11,7 @@ module.exports = {
     statements: [85, 100],
   },
   include: ['**/*.js'],
-  exclude: ['node_modules', 'test-results', '**/*.spec.js', 'nyc.config.js'],
+  exclude: ['node_modules', 'test-results', '**/*.spec.js', '*.config.js'],
   reporter: ['text', 'html', 'cobertura'],
   cache: false,
   all: true,
